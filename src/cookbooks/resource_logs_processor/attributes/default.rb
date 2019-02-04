@@ -36,6 +36,8 @@ default['logstash']['path']['conf'] = "#{settings_directory}/conf.d"
 default['logstash']['path']['plugins'] = "#{home_directory}/plugins"
 default['logstash']['path']['data'] = '/var/lib/logstash'
 
+default['logstash']['port']['metrics'] = 9600
+
 default['logstash']['consul']['service_name'] = 'logs'
 
 default['logstash']['service_name'] = 'logstash'
