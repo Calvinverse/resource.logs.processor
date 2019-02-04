@@ -522,7 +522,7 @@
         <!-- <TemplateTokenGenerators>UNDEFINED</TemplateTokenGenerators> -->
     </PropertyGroup>
     <PropertyGroup>
-        <LinuxImage Condition=" '$(LinuxImage)' == '' ">resource.build.master</LinuxImage>
+        <LinuxImage Condition=" '$(LinuxImage)' == '' ">resource.logs.processor</LinuxImage>
     </PropertyGroup>
 
     <!--
