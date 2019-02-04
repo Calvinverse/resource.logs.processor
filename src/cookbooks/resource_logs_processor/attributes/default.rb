@@ -27,7 +27,7 @@ default['firewall']['ipv6_enabled'] = false
 # LOGSTASH
 #
 
-home_directory = '/usr/share/logstash'
+home_directory = '/usr/local/logstash'
 settings_directory = '/etc/logstash'
 default['logstash']['path']['home'] = home_directory
 default['logstash']['path']['bin'] = "#{home_directory}/bin"
@@ -43,9 +43,7 @@ default['logstash']['service_name'] = 'logstash'
 default['logstash']['service_user'] = 'logstash'
 default['logstash']['service_group'] = 'logstash'
 
-default['logstash']['version'] = '6.6.0'
-default['logstash']['shasums'] = 'f09d9faf09f69e5a5b7570fa4b69cc86c0104068fb3e90d07bebd7b4a64425b4'
-default['logstash']['download_url'] = 'https://dl.influxdata.com/kapacitor/releases'
+default['logstash']['version'] = '1:6.6.0-1'
 
 #
 # TELEGRAF

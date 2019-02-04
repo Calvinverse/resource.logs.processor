@@ -12,6 +12,51 @@ poise_service_user node['logstash']['service_user'] do
   group node['logstash']['service_group']
 end
 
+#
+# DIRECTORIES
+#
+
+directory node['logstash']['path']['home'] do
+  action :create
+  group node['logstash']['service_group']
+  mode '0550'
+  owner node['logstash']['service_user']
+end
+
+directory node['logstash']['path']['bin'] do
+  action :create
+  group node['logstash']['service_group']
+  mode '0550'
+  owner node['logstash']['service_user']
+end
+
+directory node['logstash']['path']['settings'] do
+  action :create
+  group node['logstash']['service_group']
+  mode '0550'
+  owner node['logstash']['service_user']
+end
+
+directory node['logstash']['path']['conf'] do
+  action :create
+  group node['logstash']['service_group']
+  mode '0550'
+  owner node['logstash']['service_user']
+end
+
+directory node['logstash']['path']['plugins'] do
+  action :create
+  group node['logstash']['service_group']
+  mode '0550'
+  owner node['logstash']['service_user']
+end
+
+directory node['logstash']['path']['data'] do
+  action :create
+  group node['logstash']['service_group']
+  mode '0770'
+  owner node['logstash']['service_user']
+end
 
 #
 # INSTALL LOGSTASH
@@ -19,7 +64,8 @@ end
 
 apt_repository 'elastic-apt-repository' do
   action :add
-  distribution './'
+  components %w[main]
+  distribution 'stable'
   key 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
   uri 'https://artifacts.elastic.co/packages/6.x/apt'
 end
