@@ -7,42 +7,17 @@
 # Copyright 2019, P. van der Velde
 #
 
-jenkins_location_config_script_template_file = node['jenkins']['consul_template']['location_config_script_file']
-file "#{consul_template_template_path}/#{jenkins_location_config_script_template_file}" do
+logstash_filters_directory = node['logstash']['path']['conf']
+logstash_filters_script_template_file = node['logstash']['consul_template']['provisioning_filters_script']
+file "#{consul_template_template_path}/#{logstash_filters_script_template_file}" do
   action :create
   content <<~CONF
     #!/bin/sh
 
-    {{ if keyExists "config/environment/mail/suffix" }}
-    {{ if keyExists "config/services/builds/url/proxy" }}
-    FLAG=$(cat #{flag_location_config})
-    if [ "$FLAG" = "NotInitialized" ]; then
-        echo "Write the jenkins location configuration ..."
-        cat <<'EOT' > #{jenkins_home}/jenkins.model.JenkinsLocationConfiguration.xml
-    <?xml version='1.0' encoding='UTF-8'?>
-    <jenkins.model.JenkinsLocationConfiguration>
-      <adminAddress>Builds &lt;builds@{{ key "config/environment/mail/suffix" }}&gt;</adminAddress>
-      <jenkinsUrl>{{ key "config/services/builds/url/proxy" }}</jenkinsUrl>
-    </jenkins.model.JenkinsLocationConfiguration>
+    {{ range ls "config/services/logs/filters" }}
+    cat <<EOT > #{logstash_filters_directory}/{{ .Key }}.conf
+    {{ .Value }}
     EOT
-
-        chown #{node['jenkins']['service_user']}:#{node['jenkins']['service_group']} #{jenkins_home}/jenkins.model.JenkinsLocationConfiguration.xml
-        chmod 550 #{jenkins_home}/jenkins.model.JenkinsLocationConfiguration.xml
-
-        if ( $(systemctl is-enabled --quiet #{jenkins_service_name}) ); then
-          if ( ! (systemctl is-active --quiet #{jenkins_service_name}) ); then
-            systemctl restart #{jenkins_service_name}
-          fi
-        fi
-
-        echo "Initialized" > #{flag_location_config}
-    fi
-
-    {{ else }}
-    echo "Not all Consul K-V values are available. Will not start Jenkins."
-    {{ end }}
-    {{ else }}
-    echo "Not all Consul K-V values are available. Will not start Jenkins."
     {{ end }}
   CONF
   group 'root'
@@ -50,8 +25,8 @@ file "#{consul_template_template_path}/#{jenkins_location_config_script_template
   owner 'root'
 end
 
-jenkins_location_config_script_file = node['jenkins']['consul_template']['location_config_file']
-file "#{consul_template_config_path}/jenkins_location_configuration.hcl" do
+logstash_filters_script = '/tmp/logstash_filters.sh'
+file "#{consul_template_config_path}/logstash_filters.hcl" do
   action :create
   content <<~HCL
     # This block defines the configuration for a template. Unlike other blocks,
@@ -61,12 +36,12 @@ file "#{consul_template_config_path}/jenkins_location_configuration.hcl" do
       # This is the source file on disk to use as the input template. This is often
       # called the "Consul Template template". This option is required if not using
       # the `contents` option.
-      source = "#{consul_template_template_path}/#{jenkins_location_config_script_template_file}"
+      source = "#{consul_template_template_path}/#{logstash_filters_script_template_file}"
 
       # This is the destination path on disk where the source template will render.
       # If the parent directories do not exist, Consul Template will attempt to
       # create them, unless create_dest_dirs is false.
-      destination = "#{jenkins_location_config_script_file}"
+      destination = "#{logstash_filters_script}"
 
       # This options tells Consul Template to create the parent directories of the
       # destination path if they do not exist. The default value is true.
@@ -76,11 +51,11 @@ file "#{consul_template_config_path}/jenkins_location_configuration.hcl" do
       # command will only run if the resulting template changes. The command must
       # return within 30s (configurable), and it must have a successful exit code.
       # Consul Template is not a replacement for a process monitor or init system.
-      command = "sh #{jenkins_location_config_script_file}"
+      command = "sh #{logstash_filters_script}"
 
       # This is the maximum amount of time to wait for the optional command to
       # return. Default is 30s.
-      command_timeout = "60s"
+      command_timeout = "15s"
 
       # Exit with an error when accessing a struct or map field/key that does not
       # exist. The default behavior will print "<no value>" when accessing a field

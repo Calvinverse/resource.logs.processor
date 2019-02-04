@@ -47,6 +47,8 @@ default['logstash']['service_group'] = 'logstash'
 
 default['logstash']['version'] = '1:6.6.0-1'
 
+default['logstash']['consul_template']['provisioning_filters_script'] = 'logstash_filters.ctmpl'
+
 #
 # TELEGRAF
 #
