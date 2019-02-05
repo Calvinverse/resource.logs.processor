@@ -75,10 +75,14 @@ apt_package 'logstash' do
   version node['logstash']['version']
 end
 
-service_name = 'logstash'
-service service_name do
+logstash_service_name = node['logstash']['service_name']
+service logstash_service_name do
   action :disable
 end
+
+#
+# CONFIGURATION FILES
+#
 
 file "#{node['logstash']['path']['settings']}/jvm.options" do
   action :create
@@ -88,8 +92,8 @@ file "#{node['logstash']['path']['settings']}/jvm.options" do
     # Xms represents the initial size of total heap space
     # Xmx represents the maximum size of total heap space
 
-    -Xms1g
-    -Xmx1g
+    #-Xms1g
+    #-Xmx1g
 
     ################################################################
     ## Expert settings
@@ -101,11 +105,20 @@ file "#{node['logstash']['path']['settings']}/jvm.options" do
     ##
     ################################################################
 
+    -server
+    -XX:+AlwaysPreTouch
+
     ## GC configuration
-    -XX:+UseParNewGC
     -XX:+UseConcMarkSweepGC
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+ParallelRefProcEnabled
+    -XX:+UseStringDeduplication
+    -XX:+CMSParallelRemarkEnabled
+    -XX:+CMSIncrementalMode
     -XX:CMSInitiatingOccupancyFraction=75
-    -XX:+UseCMSInitiatingOccupancyOnly
+
+    # Prefer the IPv4 stack because Java / Jolokia hates IPv6
+    -Djava.net.preferIPv4Stack=true
 
     ## Locale
     # Set the locale language
@@ -431,97 +444,30 @@ file "#{node['logstash']['path']['settings']}/log4j2.properties" do
     status = error
     name = LogstashPropertiesConfig
 
-    appender.console.type = Console
-    appender.console.name = plain_console
-    appender.console.layout.type = PatternLayout
-    appender.console.layout.pattern = [%d{ISO8601}][%-5p][%-25c] %m%n
-
-    appender.json_console.type = Console
-    appender.json_console.name = json_console
-    appender.json_console.layout.type = JSONLayout
-    appender.json_console.layout.compact = true
-    appender.json_console.layout.eventEol = true
-
-    appender.rolling.type = RollingFile
-    appender.rolling.name = plain_rolling
-    appender.rolling.fileName = ${sys:ls.logs}/logstash-${sys:ls.log.format}.log
-    appender.rolling.filePattern = ${sys:ls.logs}/logstash-${sys:ls.log.format}-%d{yyyy-MM-dd}-%i.log.gz
-    appender.rolling.policies.type = Policies
-    appender.rolling.policies.time.type = TimeBasedTriggeringPolicy
-    appender.rolling.policies.time.interval = 1
-    appender.rolling.policies.time.modulate = true
-    appender.rolling.layout.type = PatternLayout
-    appender.rolling.layout.pattern = [%d{ISO8601}][%-5p][%-25c] %-.10000m%n
-    appender.rolling.policies.size.type = SizeBasedTriggeringPolicy
-    appender.rolling.policies.size.size = 100MB
-
-    appender.json_rolling.type = RollingFile
-    appender.json_rolling.name = json_rolling
-    appender.json_rolling.fileName = ${sys:ls.logs}/logstash-${sys:ls.log.format}.log
-    appender.json_rolling.filePattern = ${sys:ls.logs}/logstash-${sys:ls.log.format}-%d{yyyy-MM-dd}-%i.log.gz
-    appender.json_rolling.policies.type = Policies
-    appender.json_rolling.policies.time.type = TimeBasedTriggeringPolicy
-    appender.json_rolling.policies.time.interval = 1
-    appender.json_rolling.policies.time.modulate = true
-    appender.json_rolling.layout.type = JSONLayout
-    appender.json_rolling.layout.compact = true
-    appender.json_rolling.layout.eventEol = true
-    appender.json_rolling.policies.size.type = SizeBasedTriggeringPolicy
-    appender.json_rolling.policies.size.size = 100MB
-
+    appender.syslog.type = Syslog
+    appender.syslog.name = syslog
+    appender.syslog.facility = LOCAL0
+    appender.syslog.host = 127.0.0.1
+    appender.syslog.appName = logstash
+    appender.syslog.port = 514
+    appender.syslog.newLine = true
+    appender.syslog.protocol = UDP
+    appender.syslog.format = RFC5424
+    appender.syslog.messageId = Audit
+    appender.syslog.id = system1
+    appender.syslog.mdcId = mdc
+    appender.syslog.layout.type = loggerFields
+    appender.syslog.layout.pairs.type = KeyValuePair
+    appender.syslog.layout.pairs.key = category
+    appender.syslog.layout.pairs.value = %c
+    appender.syslog.layout.pairs2.type = KeyValuePair
+    appender.syslog.layout.pairs2.key = message
+    appender.syslog.layout.pairs2.value = %m
+    appender.syslog.layout.pairs3.type = KeyValuePair
+    appender.syslog.layout.pairs3.key = exception
+    appender.syslog.layout.pairs3.value = %ex
 
     rootLogger.level = ${sys:ls.log.level}
-    rootLogger.appenderRef.console.ref = ${sys:ls.log.format}_console
-    rootLogger.appenderRef.rolling.ref = ${sys:ls.log.format}_rolling
-
-    # Slowlog
-
-    appender.console_slowlog.type = Console
-    appender.console_slowlog.name = plain_console_slowlog
-    appender.console_slowlog.layout.type = PatternLayout
-    appender.console_slowlog.layout.pattern = [%d{ISO8601}][%-5p][%-25c] %m%n
-
-    appender.json_console_slowlog.type = Console
-    appender.json_console_slowlog.name = json_console_slowlog
-    appender.json_console_slowlog.layout.type = JSONLayout
-    appender.json_console_slowlog.layout.compact = true
-    appender.json_console_slowlog.layout.eventEol = true
-
-    appender.rolling_slowlog.type = RollingFile
-    appender.rolling_slowlog.name = plain_rolling_slowlog
-    appender.rolling_slowlog.fileName = ${sys:ls.logs}/logstash-slowlog-${sys:ls.log.format}.log
-    appender.rolling_slowlog.filePattern = ${sys:ls.logs}/logstash-slowlog-${sys:ls.log.format}-%d{yyyy-MM-dd}-%i.log.gz
-    appender.rolling_slowlog.policies.type = Policies
-    appender.rolling_slowlog.policies.time.type = TimeBasedTriggeringPolicy
-    appender.rolling_slowlog.policies.time.interval = 1
-    appender.rolling_slowlog.policies.time.modulate = true
-    appender.rolling_slowlog.layout.type = PatternLayout
-    appender.rolling_slowlog.layout.pattern = [%d{ISO8601}][%-5p][%-25c] %.10000m%n
-    appender.rolling_slowlog.policies.size.type = SizeBasedTriggeringPolicy
-    appender.rolling_slowlog.policies.size.size = 100MB
-
-    appender.json_rolling_slowlog.type = RollingFile
-    appender.json_rolling_slowlog.name = json_rolling_slowlog
-    appender.json_rolling_slowlog.fileName = ${sys:ls.logs}/logstash-slowlog-${sys:ls.log.format}.log
-    appender.json_rolling_slowlog.filePattern = ${sys:ls.logs}/logstash-slowlog-${sys:ls.log.format}-%d{yyyy-MM-dd}-%i.log.gz
-    appender.json_rolling_slowlog.policies.type = Policies
-    appender.json_rolling_slowlog.policies.time.type = TimeBasedTriggeringPolicy
-    appender.json_rolling_slowlog.policies.time.interval = 1
-    appender.json_rolling_slowlog.policies.time.modulate = true
-    appender.json_rolling_slowlog.layout.type = JSONLayout
-    appender.json_rolling_slowlog.layout.compact = true
-    appender.json_rolling_slowlog.layout.eventEol = true
-    appender.json_rolling_slowlog.policies.size.type = SizeBasedTriggeringPolicy
-    appender.json_rolling_slowlog.policies.size.size = 100MB
-
-    logger.slowlog.name = slowlog
-    logger.slowlog.level = trace
-    logger.slowlog.appenderRef.console_slowlog.ref = ${sys:ls.log.format}_console_slowlog
-    logger.slowlog.appenderRef.rolling_slowlog.ref = ${sys:ls.log.format}_rolling_slowlog
-    logger.slowlog.additivity = false
-
-    logger.licensereader.name = logstash.licensechecker.licensereader
-    logger.licensereader.level = error
   YML
   group node['logstash']['service_group']
   mode '0550'

@@ -7,6 +7,9 @@
 # Copyright 2019, P. van der Velde
 #
 
+consul_template_config_path = node['consul_template']['config_path']
+consul_template_template_path = node['consul_template']['template_path']
+
 logstash_filters_directory = node['logstash']['path']['conf']
 logstash_filters_script_template_file = node['logstash']['consul_template']['provisioning_filters_script']
 file "#{consul_template_template_path}/#{logstash_filters_script_template_file}" do
@@ -15,8 +18,9 @@ file "#{consul_template_template_path}/#{logstash_filters_script_template_file}"
     #!/bin/sh
 
     {{ range ls "config/services/logs/filters" }}
+    {{ define "filterTemplate" }}{{ .Value }}{{ end }}
     cat <<EOT > #{logstash_filters_directory}/{{ .Key }}.conf
-    {{ .Value }}
+    {{ executeTemplate "filterTemplate" }}
     EOT
     {{ end }}
   CONF
