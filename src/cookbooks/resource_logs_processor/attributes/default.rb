@@ -5,6 +5,7 @@
 #
 
 default['consul_template']['config_path'] = '/etc/consul-template.d/conf'
+default['consul_template']['data_path'] = '/etc/consul-template.d/data'
 default['consul_template']['template_path'] = '/etc/consul-template.d/templates'
 
 #
