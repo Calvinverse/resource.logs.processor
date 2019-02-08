@@ -38,6 +38,9 @@ Requires = network-online.target
 After = network-online.target
 StartLimitIntervalSec = 0
 
+[Install]
+WantedBy = multi-user.target
+
 '@
         $serviceFileContent = Get-Content $serviceConfigurationPath | Out-String
         $systemctlOutput = & systemctl status logstash
