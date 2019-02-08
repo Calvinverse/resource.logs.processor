@@ -61,7 +61,11 @@ file run_logstash_script do
       fi
 
       export ES_JAVA_OPTS="$ES_JAVA_OPTS ${java_max_memory}"
-      /usr/share/logstash/bin/logstash "--path.settings" "/etc/logstash"
+      /usr/share/logstash/bin/logstash "--path.settings" "/etc/logstash" &
+
+      LOGSTASH_PID=$!
+
+      wait LOGSTASH_PID
     }
 
     # =============================================================================
