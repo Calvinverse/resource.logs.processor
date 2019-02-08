@@ -272,7 +272,7 @@ file "#{node['logstash']['path']['settings']}/logstash.yml" do
     #
     # config.debug: false
     #
-    # When enabled, process escaped characters such as \n and \" in strings in the
+    # When enabled, process escaped characters such as \\n and \\" in strings in the
     # pipeline configuration files.
     #
     # config.support_escapes: false
