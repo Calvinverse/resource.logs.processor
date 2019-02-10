@@ -441,33 +441,14 @@ end
 file "#{node['logstash']['path']['settings']}/log4j2.properties" do
   action :create
   content <<~YML
-    status = error
-    name = LogstashPropertiesConfig
+    log4j.rootLogger=INFO, SYSLOG
 
-    appender.syslog.type = Syslog
-    appender.syslog.name = syslog
-    appender.syslog.facility = LOCAL0
-    appender.syslog.host = 127.0.0.1
-    appender.syslog.appName = logstash
-    appender.syslog.port = 514
-    appender.syslog.newLine = true
-    appender.syslog.protocol = UDP
-    appender.syslog.format = RFC5424
-    appender.syslog.messageId = Audit
-    appender.syslog.id = system1
-    appender.syslog.mdcId = mdc
-    appender.syslog.layout.type = loggerFields
-    appender.syslog.layout.pairs.type = KeyValuePair
-    appender.syslog.layout.pairs.key = category
-    appender.syslog.layout.pairs.value = %c
-    appender.syslog.layout.pairs2.type = KeyValuePair
-    appender.syslog.layout.pairs2.key = message
-    appender.syslog.layout.pairs2.value = %m
-    appender.syslog.layout.pairs3.type = KeyValuePair
-    appender.syslog.layout.pairs3.key = exception
-    appender.syslog.layout.pairs3.value = %ex
-
-    rootLogger.level = ${sys:ls.log.level}
+    log4j.appender.SYSLOG=com.github.loggly.log4j.SyslogAppender64k
+    log4j.appender.SYSLOG.SyslogHost=localhost
+    log4j.appender.SYSLOG.Facility=Local0
+    log4j.appender.SYSLOG.Header=true
+    log4j.appender.SYSLOG.layout=org.apache.log4j.EnhancedPatternLayout
+    log4j.appender.SYSLOG.layout.ConversionPattern=java %d{ISO8601}{GMT} %p %t %c %M - %m%n
   YML
   group node['logstash']['service_group']
   mode '0550'
