@@ -19,11 +19,26 @@ end
 # SYSTEMD SERVICE
 #
 
-run_logstash_script = '/usr/local/logstash/run_logstash.sh'
+run_logstash_script = "#{node['logstash']['path']['home']}/run_logstash.sh"
+logstash_pid_file = "#{node['logstash']['path']['home']}/logstash_pid"
 file run_logstash_script do
   action :create
   content <<~SH
-    #!/bin/sh
+    #!/bin/bash
+    # Run logstash from source
+    #
+    # This is most useful when done from a git checkout.
+    #
+    # Usage:
+    #   bin/logstash <command> [arguments]
+    #
+    # See 'bin/logstash --help' for a list of commands.
+    #
+    # Supported environment variables:
+    #   LS_JAVA_OPTS="xxx" to append extra options to the JVM options provided by logstash
+    #
+    # Development environment variables:
+    #   DEBUG=1 to output debugging information
 
     #
     # Original from here: https://github.com/fabric8io-images/java/blob/master/images/jboss/openjdk8/jdk/run-java.sh
@@ -44,33 +59,31 @@ file run_logstash_script do
     }
 
     # Start JVM
-    startup() {
-      echo "Determining max memory usage ..."
-      java_max_memory=""
+    echo "Determining max memory usage ..."
+    java_max_memory=""
 
-      # Check for the 'real memory size' and calculate mx from a ratio
-      # given (default is 70%)
-      max_mem="$(max_memory)"
-      if [ "x${max_mem}" != "x0" ]; then
-        ratio=70
+    # Check for the 'real memory size' and calculate mx from a ratio
+    # given (default is 70%)
+    max_mem="$(max_memory)"
+    if [ "x${max_mem}" != "x0" ]; then
+      ratio=70
 
-        mx=$(echo "(${max_mem} * ${ratio} / 100 + 0.5)" | bc | awk '{printf("%d\\n",$1 + 0.5)}')
-        java_max_memory="-Xmx${mx}m -Xms${mx}m"
+      mx=$(echo "(${max_mem} * ${ratio} / 100 + 0.5)" | bc | awk '{printf("%d\\n",$1 + 0.5)}')
+      java_max_memory="-Xmx${mx}m -Xms${mx}m"
 
-        echo "Maximum memory for VM set to ${max_mem}. Setting max memory for java to ${mx} Mb"
-      fi
+      echo "Maximum memory for VM set to ${max_mem}. Setting max memory for java to ${mx} Mb"
+    fi
 
-      export ES_JAVA_OPTS="$ES_JAVA_OPTS ${java_max_memory}"
-      /usr/share/logstash/bin/logstash "--path.settings" "/etc/logstash" &
+    . "$(cd #{node['logstash']['path']['home']}; pwd)/bin/logstash.lib.sh"
+    setup
 
-      LOGSTASH_PID=$!
+    unset CLASSPATH
+    for J in $(cd "${LOGSTASH_JARS}"; ls *.jar); do
+      CLASSPATH=${CLASSPATH}${CLASSPATH:+:}${LOGSTASH_JARS}/${J}
+    done
+    nohub "${JAVACMD}" ${JAVA_OPTS} ${java_max_memory} -cp "${CLASSPATH}" org.logstash.Logstash "$@" <&- &
 
-      wait LOGSTASH_PID
-    }
-
-    # =============================================================================
-    # Fire up
-    startup
+    echo "$!" >"#{logstash_pid_file}"
   SH
   group node['logstash']['service_group']
   mode '0550'
@@ -93,6 +106,7 @@ systemd_service logstash_service_name do
     exec_start run_logstash_script
     limit_nofile 16_384
     nice 19
+    pid_file logstash_pid_file
     restart 'always'
     restart_sec 5
     type 'forking'
@@ -108,5 +122,5 @@ systemd_service logstash_service_name do
 end
 
 service logstash_service_name do
-  action :disable
+  action :enable
 end

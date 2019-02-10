@@ -23,6 +23,7 @@ Describe 'The logstash application' {
         $expectedContent = @'
 [Service]
 Type = forking
+PIDFile = /usr/local/logstash/logstash_pid
 ExecStart = /usr/local/logstash/run_logstash.sh
 RestartSec = 5
 Restart = always
