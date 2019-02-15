@@ -6,16 +6,16 @@ describe 'resource_logs_processor::logstash' do
   context 'creates the logstash directories' do
     let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe) }
 
-    it 'creates the logstash install directory at /usr/local/logstash' do
-      expect(chef_run).to create_directory('/usr/local/logstash').with(
+    it 'creates the logstash install directory at /usr/share/logstash' do
+      expect(chef_run).to create_directory('/usr/share/logstash').with(
         group: 'logstash',
         mode: '0550',
         owner: 'logstash'
       )
     end
 
-    it 'creates the logstash install directory at /usr/local/logstash/bin' do
-      expect(chef_run).to create_directory('/usr/local/logstash/bin').with(
+    it 'creates the logstash install directory at /usr/share/logstash/bin' do
+      expect(chef_run).to create_directory('/usr/share/logstash/bin').with(
         group: 'logstash',
         mode: '0550',
         owner: 'logstash'
@@ -38,8 +38,8 @@ describe 'resource_logs_processor::logstash' do
       )
     end
 
-    it 'creates the logstash plugins directory at /usr/local/logstash/plugins' do
-      expect(chef_run).to create_directory('/usr/local/logstash/plugins').with(
+    it 'creates the logstash plugins directory at /usr/share/logstash/plugins' do
+      expect(chef_run).to create_directory('/usr/share/logstash/plugins').with(
         group: 'logstash',
         mode: '0550',
         owner: 'logstash'
@@ -168,7 +168,7 @@ describe 'resource_logs_processor::logstash' do
       # Entropy source for randomness
       -Djava.security.egd=file:/dev/urandom
     CONF
-    it 'creates jvm.options in the configuratino directory' do
+    it 'creates jvm.options in the configuration directory' do
       expect(chef_run).to create_file('/etc/logstash/jvm.options')
         .with_content(jvm_options_content)
         .with(

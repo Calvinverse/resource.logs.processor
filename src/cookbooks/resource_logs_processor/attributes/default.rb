@@ -28,7 +28,7 @@ default['firewall']['ipv6_enabled'] = false
 # LOGSTASH
 #
 
-home_directory = '/usr/local/logstash'
+home_directory = '/usr/share/logstash'
 settings_directory = '/etc/logstash'
 default['logstash']['path']['home'] = home_directory
 default['logstash']['path']['bin'] = "#{home_directory}/bin"

@@ -1,8 +1,8 @@
 Describe 'The logstash application' {
     Context 'is installed' {
-        It 'with binaries in /usr/local/logstash' {
-            '/usr/local/logstash' | Should Exist
-            '/usr/local/logstash/bin' | Should Exist
+        It 'with binaries in /usr/share/logstash' {
+            '/usr/share/logstash' | Should Exist
+            '/usr/share/logstash/bin' | Should Exist
         }
 
         It 'with configurations in /etc/logstash' {
@@ -23,8 +23,8 @@ Describe 'The logstash application' {
         $expectedContent = @'
 [Service]
 Type = forking
-PIDFile = /usr/local/logstash/logstash_pid
-ExecStart = /usr/local/logstash/run_logstash.sh
+PIDFile = /tmp/logstash_pid
+ExecStart = /usr/share/logstash/run_logstash.sh
 RestartSec = 5
 Restart = always
 User = logstash
