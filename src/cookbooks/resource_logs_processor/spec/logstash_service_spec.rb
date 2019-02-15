@@ -57,19 +57,19 @@ describe 'resource_logs_processor::logstash_service' do
         echo "Maximum memory for VM set to ${max_mem}. Setting max memory for java to ${mx} Mb"
       fi
 
-      . "$(cd /usr/local/logstash; pwd)/bin/logstash.lib.sh"
+      . "$(cd /usr/share/logstash; pwd)/bin/logstash.lib.sh"
       setup
 
       unset CLASSPATH
       for J in $(cd "${LOGSTASH_JARS}"; ls *.jar); do
         CLASSPATH=${CLASSPATH}${CLASSPATH:+:}${LOGSTASH_JARS}/${J}
       done
-      nohub "${JAVACMD}" ${JAVA_OPTS} ${java_max_memory} -cp "${CLASSPATH}" org.logstash.Logstash "$@" <&- &
+      nohup "${JAVACMD}" ${JAVA_OPTS} ${java_max_memory} -cp "${CLASSPATH}" org.logstash.Logstash "$@" <&- &
 
-      echo "$!" >"/usr/local/logstash/logstash_pid"
+      echo "$!" >"/tmp/logstash_pid"
     SH
-    it 'creates the /usr/local/logstash/run_logstash.sh file' do
-      expect(chef_run).to create_file('/usr/local/logstash/run_logstash.sh')
+    it 'creates the /usr/share/logstash/run_logstash.sh file' do
+      expect(chef_run).to create_file('/usr/share/logstash/run_logstash.sh')
         .with_content(logstash_service_script_content)
         .with(
           group: 'logstash',
@@ -82,10 +82,10 @@ describe 'resource_logs_processor::logstash_service' do
       expect(chef_run).to create_systemd_service('logstash').with(
         action: [:create],
         install_wanted_by: %w[multi-user.target],
-        service_exec_start: '/usr/local/logstash/run_logstash.sh',
+        service_exec_start: '/usr/share/logstash/run_logstash.sh',
         service_limit_nofile: 16_384,
         service_nice: 19,
-        service_pid_file: '/usr/local/logstash/logstash_pid',
+        service_pid_file: '/tmp/logstash_pid',
         service_restart: 'always',
         service_restart_sec: 5,
         service_type: 'forking',
