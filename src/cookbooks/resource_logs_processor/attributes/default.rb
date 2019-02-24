@@ -48,7 +48,10 @@ default['logstash']['service_group'] = 'logstash'
 
 default['logstash']['version'] = '1:6.6.0-1'
 
-default['logstash']['consul_template']['provisioning_filters_script'] = 'logstash_filters.ctmpl'
+default['logstash']['consul_template']['config_script'] = 'logstash_config.ctmpl'
+default['logstash']['consul_template']['filters_script'] = 'logstash_filters.ctmpl'
+
+default['logstash']['telegraf']['consul_template_inputs_file'] = 'telegraf_logstash_inputs.ctmpl'
 
 #
 # TELEGRAF
