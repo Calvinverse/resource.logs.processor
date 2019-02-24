@@ -379,20 +379,20 @@ describe 'resource_logs_processor::logstash_templates' do
       #!/bin/sh
 
       {{ range ls "config/services/logs/filters" }}
-      cat <<EOT > /etc/consul-template.d/templates/logstash_filter_{{ .Key }}.ctmpl
+      cat <<EOT > /etc/consul-template.d/templates/{{ .Key }}.ctmpl
       {{ .Value }}
       EOT
 
-      cat <<EOT > /etc/consul-template.d/conf/logstash_filter_{{ .Key }}.hcl
+      cat <<EOT > /etc/consul-template.d/conf/{{ .Key }}.hcl
       template {
-        source = "/etc/consul-template.d/templates/logstash_filter_{{ .Key }}.ctmpl"
-        destination = "/etc/logstash/conf.d/logstash_filter_{{ .Key }}.conf"
+        source = "/etc/consul-template.d/templates/{{ .Key }}.ctmpl"
+        destination = "/etc/logstash/conf.d/{{ .Key }}.conf"
         create_dest_dirs = false
-        command = ""
+        command = "/bin/bash -c 'chown logstash:logstash /etc/logstash/conf.d/{{ .Key }}.conf'"
         command_timeout = "15s"
         error_on_missing_key = false
         perms = 0550
-        backup = true
+        backup = false
         wait {
           min = "2s"
           max = "10s"

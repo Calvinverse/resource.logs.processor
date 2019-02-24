@@ -376,8 +376,13 @@ file "#{consul_template_config_path}/logstash_config.hcl" do
   mode '0550'
   owner 'root'
 end
+
+#
+# FILTERS
+#
+
 logstash_filters_directory = node['logstash']['path']['conf']
-logstash_filters_script_template_file = node['logstash']['consul_template']['provisioning_filters_script']
+logstash_filters_script_template_file = node['logstash']['consul_template']['filters_script']
 
 # This one is tricky because the Consul K-V contents has to be the template file for
 # Consul-Template to read because we need credentials for RabbitMQ, Elasticsearch and
@@ -393,20 +398,20 @@ file "#{consul_template_template_path}/#{logstash_filters_script_template_file}"
     #!/bin/sh
 
     {{ range ls "config/services/logs/filters" }}
-    cat <<EOT > #{consul_template_template_path}/logstash_filter_{{ .Key }}.ctmpl
+    cat <<EOT > #{consul_template_template_path}/{{ .Key }}.ctmpl
     {{ .Value }}
     EOT
 
-    cat <<EOT > #{consul_template_config_path}/logstash_filter_{{ .Key }}.hcl
+    cat <<EOT > #{consul_template_config_path}/{{ .Key }}.hcl
     template {
-      source = "#{consul_template_template_path}/logstash_filter_{{ .Key }}.ctmpl"
-      destination = "#{logstash_filters_directory}/logstash_filter_{{ .Key }}.conf"
+      source = "#{consul_template_template_path}/{{ .Key }}.ctmpl"
+      destination = "#{logstash_filters_directory}/{{ .Key }}.conf"
       create_dest_dirs = false
-      command = ""
+      command = "/bin/bash -c 'chown #{node['logstash']['service_user']}:#{node['logstash']['service_group']} #{logstash_filters_directory}/{{ .Key }}.conf'"
       command_timeout = "15s"
       error_on_missing_key = false
       perms = 0550
-      backup = true
+      backup = false
       wait {
         min = "2s"
         max = "10s"
