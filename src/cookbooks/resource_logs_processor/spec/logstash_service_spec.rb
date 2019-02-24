@@ -82,7 +82,7 @@ describe 'resource_logs_processor::logstash_service' do
       expect(chef_run).to create_systemd_service('logstash').with(
         action: [:create],
         install_wanted_by: %w[multi-user.target],
-        service_exec_start: '/usr/share/logstash/run_logstash.sh',
+        service_exec_start: '/usr/share/logstash/run_logstash.sh --path.settings /etc/logstash/',
         service_limit_nofile: 16_384,
         service_nice: 19,
         service_pid_file: '/tmp/logstash_pid',
@@ -98,7 +98,7 @@ describe 'resource_logs_processor::logstash_service' do
     end
 
     it 'enables the logstash service' do
-      expect(chef_run).to enable_service('logstash')
+      expect(chef_run).to disable_service('logstash')
     end
   end
 end

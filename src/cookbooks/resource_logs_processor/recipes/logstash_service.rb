@@ -263,7 +263,7 @@ systemd_service logstash_service_name do
     # exist, it continues onward.
     environment_file '-/etc/default/logstash'
     environment_file '-/etc/sysconfig/logstash'
-    exec_start run_logstash_script
+    exec_start "#{run_logstash_script} --path.settings /etc/logstash/"
     limit_nofile 16_384
     nice 19
     pid_file logstash_pid_file
@@ -282,5 +282,5 @@ systemd_service logstash_service_name do
 end
 
 service logstash_service_name do
-  action :enable
+  action :disable
 end
