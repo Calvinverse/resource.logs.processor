@@ -84,16 +84,12 @@ end
 # CONFIGURATION FILES
 #
 
+# Note the memory settings for Logstash are set via the service script so that Logstash can be
+# given a percentage of the available memory on the machine
 file "#{node['logstash']['path']['settings']}/jvm.options" do
   action :create
   content <<~OPTIONS
     ## JVM configuration
-
-    # Xms represents the initial size of total heap space
-    # Xmx represents the maximum size of total heap space
-
-    #-Xms1g
-    #-Xmx1g
 
     ################################################################
     ## Expert settings

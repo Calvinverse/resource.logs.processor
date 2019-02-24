@@ -83,12 +83,6 @@ describe 'resource_logs_processor::logstash' do
     jvm_options_content = <<~CONF
       ## JVM configuration
 
-      # Xms represents the initial size of total heap space
-      # Xmx represents the maximum size of total heap space
-
-      #-Xms1g
-      #-Xmx1g
-
       ################################################################
       ## Expert settings
       ################################################################
