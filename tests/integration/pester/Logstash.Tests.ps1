@@ -24,7 +24,7 @@ Describe 'The logstash application' {
 [Service]
 Type = forking
 PIDFile = /tmp/logstash_pid
-ExecStart = /usr/share/logstash/run_logstash.sh
+ExecStart = /usr/share/logstash/run_logstash.sh --path.settings /etc/logstash/
 RestartSec = 5
 Restart = always
 User = logstash
