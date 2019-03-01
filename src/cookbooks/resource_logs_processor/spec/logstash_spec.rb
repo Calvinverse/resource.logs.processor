@@ -173,14 +173,11 @@ describe 'resource_logs_processor::logstash' do
     end
 
     log4j2_properties_content = <<~CONF
-      log4j.rootLogger=INFO, SYSLOG
-
-      log4j.appender.SYSLOG=com.github.loggly.log4j.SyslogAppender64k
-      log4j.appender.SYSLOG.SyslogHost=localhost
-      log4j.appender.SYSLOG.Facility=Local0
-      log4j.appender.SYSLOG.Header=true
-      log4j.appender.SYSLOG.layout=org.apache.log4j.EnhancedPatternLayout
-      log4j.appender.SYSLOG.layout.ConversionPattern=java %d{ISO8601}{GMT} %p %t %c %M - %m%n
+      appender.syslog.name = syslog
+      appender.syslog.type = Syslog
+      appender.syslog.host = localhost
+      appender.syslog.protocol = tcp
+      appender.syslog.port = 514
 
       appender.console.type = Console
       appender.console.name = plain_console
@@ -222,7 +219,7 @@ describe 'resource_logs_processor::logstash' do
 
 
       rootLogger.level = ${sys:ls.log.level}
-      #rootLogger.appenderRef.syslog.ref = SYSLOG
+      rootLogger.appenderRef.syslog.ref = syslog
       rootLogger.appenderRef.console.ref = ${sys:ls.log.format}_console
       rootLogger.appenderRef.rolling.ref = ${sys:ls.log.format}_rolling
 
