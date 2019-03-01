@@ -31,7 +31,10 @@ file "#{consul_template_template_path}/#{telegraf_logstash_inputs_template_file}
     [[inputs.http]]
       ## One or more URLs from which to read formatted metrics
       urls = [
-        "http://localhost:#{logstash_metrics_port}/_node/stats/jvm"
+        "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/jvm",
+        "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/events",
+        "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/pipelines",
+        "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/reloads",
       ]
 
       ## HTTP method

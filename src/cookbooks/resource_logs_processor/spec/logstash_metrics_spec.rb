@@ -18,7 +18,10 @@ describe 'resource_logs_processor::logstash_metrics' do
       [[inputs.http]]
         ## One or more URLs from which to read formatted metrics
         urls = [
-          "http://localhost:#{logstash_metrics_port}/_node/stats/jvm"
+          "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/jvm",
+          "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/events",
+          "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/pipelines",
+          "http://127.0.0.1:#{logstash_metrics_port}/_node/stats/reloads",
         ]
 
         ## HTTP method
